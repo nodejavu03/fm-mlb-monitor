@@ -1,10 +1,12 @@
-import cloudscraper
+import requests
 from bs4 import BeautifulSoup
 import json, os
 
 KEYWORDS = ["콜업", "승격"]
 URL = "https://www.fmkorea.com/index.php?mid=baseball&category=3319438871"
 NTFY_TOPIC = os.environ["NTFY_TOPIC"]
+FM_PHPSESSID = os.environ["FM_PHPSESSID"]
+FM_FSK = os.environ["FM_FSK"]
 STATE_FILE = "seen_posts.json"
 
 def load_seen():
@@ -18,8 +20,14 @@ def save_seen(seen):
         json.dump(list(seen), f)
 
 def fetch_posts():
-    scraper = cloudscraper.create_scraper()
-    res = scraper.get(URL)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    cookies = {
+        "PHPSESSID": FM_PHPSESSID,
+        "_FSK": FM_FSK,
+    }
+    res = requests.get(URL, headers=headers, cookies=cookies)
     print(f"HTTP 상태코드: {res.status_code}")
     print(res.text[:2000])
 
@@ -42,7 +50,6 @@ def fetch_posts():
     return posts
 
 def send_notification(post):
-    import requests
     requests.post(
         f"https://ntfy.sh/{NTFY_TOPIC}",
         headers={
