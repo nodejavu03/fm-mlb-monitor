@@ -19,13 +19,18 @@ def save_seen(seen):
 
 def fetch_posts():
     headers = {
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
     res = requests.get(URL, headers=headers)
+    print(f"HTTP 상태코드: {res.status_code}")
+    
     soup = BeautifulSoup(res.text, "html.parser")
-
+    
+    # 디버그: 페이지 앞부분 출력
+    print("=== HTML 앞부분 ===")
+    print(res.text[:2000])
+    
     posts = []
-    # 에펨코리아 모바일 게시물 목록
     for item in soup.select("ul.list_ul li"):
         a = item.select_one("a")
         title_el = item.select_one(".li_title, .title, strong")
@@ -57,8 +62,6 @@ def main():
     seen = load_seen()
     posts = fetch_posts()
     print(f"총 {len(posts)}개 게시물 발견")
-    for p in posts:
-        print(p["title"])
 
     new_seen = set(seen)
     for post in posts:
