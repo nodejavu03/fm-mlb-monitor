@@ -31,4 +31,6 @@ jobs:
       - name: Run monitor
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          FM_PHPSESSID: ${{ secrets.FM_PHPSESSID }}
+          FM_FSK: ${{ secrets.FM_FSK }}
         run: python monitor.py
