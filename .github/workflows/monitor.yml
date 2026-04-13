@@ -26,8 +26,8 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
-
+        run: pip install requests beautifulsoup4 cloudscraper
+        
       - name: Run monitor
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
