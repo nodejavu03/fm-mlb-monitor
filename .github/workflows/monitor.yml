@@ -31,7 +31,8 @@ jobs:
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
+          git fetch origin main
+          git reset --soft origin/main
           git add seen_posts.json
           git diff --staged --quiet || git commit -m "Update seen posts"
-          git pull --rebase
-          git push
+          git push --force
