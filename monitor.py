@@ -1,9 +1,9 @@
-import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 import json, os
 
 KEYWORDS = ["콜업", "승격"]
-URL = "https://m.fmkorea.com/index.php?mid=baseball&category=3319438871"
+URL = "https://www.fmkorea.com/index.php?mid=baseball&category=3319438871"
 NTFY_TOPIC = os.environ["NTFY_TOPIC"]
 STATE_FILE = "seen_posts.json"
 
@@ -18,22 +18,16 @@ def save_seen(seen):
         json.dump(list(seen), f)
 
 def fetch_posts():
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-    res = requests.get(URL, headers=headers)
+    scraper = cloudscraper.create_scraper()
+    res = scraper.get(URL)
     print(f"HTTP 상태코드: {res.status_code}")
-    
-    soup = BeautifulSoup(res.text, "html.parser")
-    
-    # 디버그: 페이지 앞부분 출력
-    print("=== HTML 앞부분 ===")
     print(res.text[:2000])
-    
+
+    soup = BeautifulSoup(res.text, "html.parser")
     posts = []
-    for item in soup.select("ul.list_ul li"):
+    for item in soup.select("ul.bd_lst li, ul.list_ul li"):
         a = item.select_one("a")
-        title_el = item.select_one(".li_title, .title, strong")
+        title_el = item.select_one(".title, .li_title, strong")
         if not a or not title_el:
             continue
         title = title_el.get_text(strip=True)
@@ -43,11 +37,12 @@ def fetch_posts():
         posts.append({
             "id": href,
             "title": title,
-            "link": "https://m.fmkorea.com" + href if href.startswith("/") else href
+            "link": "https://www.fmkorea.com" + href if href.startswith("/") else href
         })
     return posts
 
 def send_notification(post):
+    import requests
     requests.post(
         f"https://ntfy.sh/{NTFY_TOPIC}",
         headers={
@@ -62,6 +57,8 @@ def main():
     seen = load_seen()
     posts = fetch_posts()
     print(f"총 {len(posts)}개 게시물 발견")
+    for p in posts:
+        print(p["title"])
 
     new_seen = set(seen)
     for post in posts:
